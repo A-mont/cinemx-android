@@ -1,0 +1,31 @@
+{
+  "id": 1064213,
+  "title": "Anora",
+  "overview": "Una joven trabajadora sexual de Brooklyn conoce a un cliente inesperado.",
+  "poster_path": "/qGQf2OHtBIsvdyKPMdEqDLdsN2G.jpg",
+  "backdrop_path": "/oKO0lQFAJHOOPZ9GBdiaIRLDgYs.jpg",
+  "vote_average": 7.056,
+  "release_date": "2024-10-14",
+  "runtime": 139,
+  "genres": [
+    { "id": 35, "name": "Comedia" },
+    { "id": 18, "name": "Drama" }
+  ],
+  "release_dates": {
+    "results": [
+      {
+        "iso_3166_1": "US",
+        "release_dates": [
+          { "certification": "R", "release_date": "2024-10-18T00:00:00.000Z", "type": 3 }
+        ]
+      },
+      {
+        "iso_3166_1": "MX",
+        "release_dates": [
+          { "certification": "", "release_date": "2024-10-31T00:00:00.000Z", "type": 3 },
+          { "certification": "C", "release_date": "2024-11-07T00:00:00.000Z", "type": 4 }
+        ]
+      }
+    ]
+  }
+}
