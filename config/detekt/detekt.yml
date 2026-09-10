@@ -1,0 +1,32 @@
+# El corte duro lo decide `qualityAdvisory` en build.gradle.kts: mientras esté
+# en modo aviso, detekt reporta estos hallazgos pero no rompe el build.
+build:
+  maxIssues: 0
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 80
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 8
+  TooManyFunctions:
+    active: false
+
+style:
+  MagicNumber:
+    active: false
+  UnusedPrivateMember:
+    active: true
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+
+naming:
+  FunctionNaming:
+    active: true
+    # Los @Composable usan PascalCase por convención de Compose.
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    active: false
