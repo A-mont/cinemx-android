@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CineMX</string>
+
+    <!-- Login -->
+    <string name="login_title">Bienvenido</string>
+    <string name="login_subtitle">Inicia sesión para ver las películas en cartelera</string>
+    <string name="login_email">Correo electrónico</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_action">Iniciar sesión</string>
+    <string name="login_google">Continuar con Google</string>
+    <string name="login_show_password">Mostrar contraseña</string>
+    <string name="login_hide_password">Ocultar contraseña</string>
+    <string name="login_error_email_blank">Ingresa tu correo</string>
+    <string name="login_error_email_invalid">El correo no tiene un formato válido</string>
+    <string name="login_error_password_blank">Ingresa tu contraseña</string>
+    <string name="login_error_password_short">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="login_error_invalid_credentials">Correo o contraseña incorrectos</string>
+    <string name="login_error_email_not_confirmed">Confirma tu correo antes de iniciar sesión</string>
+    <string name="login_error_too_many_requests">Demasiados intentos. Espera un momento e inténtalo de nuevo</string>
+    <string name="login_error_google_cancelled">Inicio de sesión con Google cancelado</string>
+    <string name="login_error_google_unavailable">No hay cuentas de Google disponibles en este dispositivo</string>
+    <string name="login_or">o</string>
+
+    <!-- Home -->
+    <string name="home_greeting">¡Hola, %1$s!</string>
+    <string name="home_subtitle">En cartelera</string>
+    <string name="home_logout">Cerrar sesión</string>
+    <string name="home_logout_title">Cerrar sesión</string>
+    <string name="home_logout_message">¿Seguro que quieres cerrar sesión?</string>
+    <string name="home_logout_confirm">Cerrar sesión</string>
+    <string name="home_logout_cancel">Cancelar</string>
+    <string name="home_empty_title">No hay películas en cartelera</string>
+    <string name="home_empty_message">Vuelve a intentarlo más tarde</string>
+
+    <!-- Detalle -->
+    <string name="detail_back">Volver</string>
+    <string name="detail_overview">Sinopsis</string>
+    <string name="detail_no_overview">Esta película todavía no tiene sinopsis disponible en español.</string>
+    <string name="detail_genres">Géneros</string>
+    <string name="detail_runtime">Duración</string>
+    <string name="detail_release_date">Estreno</string>
+    <string name="detail_certification">Clasificación</string>
+    <string name="detail_rating">Calificación</string>
+    <string name="detail_poster_of">Póster de %1$s</string>
+
+    <!-- Comunes -->
+    <string name="common_retry">Reintentar</string>
+    <string name="common_not_available">N/D</string>
+    <string name="common_rating_format">%1$s</string>
+
+    <!-- Errores de red -->
+    <string name="error_no_connection">Sin conexión a internet. Revisa tu red e inténtalo de nuevo.</string>
+    <string name="error_unauthorized">No fue posible autenticar la petición a TMDB.</string>
+    <string name="error_not_found">No encontramos la información solicitada.</string>
+    <string name="error_server">El servidor de TMDB no está disponible. Inténtalo más tarde.</string>
+    <string name="error_unknown">Ocurrió un error inesperado.</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.CineMX" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash con la API oficial: se mantiene visible mientras se resuelve la sesión. -->
+    <style name="Theme.CineMX.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.CineMX</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">shortEdges</item>
+    </style>
+</resources>
