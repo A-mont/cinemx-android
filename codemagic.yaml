@@ -1,0 +1,128 @@
+definitions:
+  instance: &instance
+    instance_type: linux_x2
+    max_build_duration: 60
+
+  # Variables sensibles: se definen en Codemagic > Environment variables,
+  # dentro del grupo `cinemx_secrets`, marcadas como "Secure".
+  #   TMDB_READ_TOKEN, SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_WEB_CLIENT_ID
+  env_secrets: &env_secrets
+    groups:
+      - cinemx_secrets
+    java: 17
+    vars:
+      # Debe coincidir con gradle/wrapper/gradle-wrapper.properties.
+      GRADLE_VERSION: 8.11.1
+
+  scripts:
+    - &ensure_wrapper
+      name: Asegurar el Gradle wrapper
+      # El wrapper incluye un .jar binario que no conviene versionar a mano.
+      # Si el repo no lo trae, se genera aquí: primero con el Gradle de la imagen
+      # y, si no hubiera, descargando la distribución oficial. Así el build no
+      # depende de que la máquina venga con Gradle preinstalado.
+      script: |
+        set -e
+        cd "$CM_BUILD_DIR"
+
+        if [ -f gradlew ] && [ -f gradle/wrapper/gradle-wrapper.jar ]; then
+          echo "Wrapper ya presente en el repositorio."
+          exit 0
+        fi
+
+        if command -v gradle >/dev/null 2>&1; then
+          echo "Generando el wrapper con el Gradle de la imagen ($(gradle --version | awk '/^Gradle/{print $2}'))."
+          gradle wrapper --gradle-version "$GRADLE_VERSION"
+        else
+          echo "Sin Gradle en la imagen: descargando la distribución $GRADLE_VERSION."
+          curl -sSLo /tmp/gradle.zip \
+            "https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip"
+          unzip -q /tmp/gradle.zip -d /tmp
+          "/tmp/gradle-$GRADLE_VERSION/bin/gradle" wrapper --gradle-version "$GRADLE_VERSION"
+        fi
+
+        chmod +x gradlew
+        ./gradlew --version
+
+    - &write_secrets
+      name: Generar secrets.properties
+      script: |
+        cat > "$CM_BUILD_DIR/secrets.properties" <<EOF
+        TMDB_READ_TOKEN=$TMDB_READ_TOKEN
+        SUPABASE_URL=$SUPABASE_URL
+        SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+        GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID
+        EOF
+
+    - &quality
+      name: Calidad estática
+      # En modo aviso (por defecto) reporta sin romper el build, para que el primer
+      # pipeline llegue a compilar. Con el build ya verde: -PqualityAdvisory=false.
+      script: ./gradlew ktlintCheck detekt
+
+    - &unit_tests
+      name: Tests unitarios
+      script: ./gradlew testDebugUnitTest
+
+workflows:
+  debug:
+    name: Debug (PR y ramas)
+    <<: *instance
+    environment:
+      <<: *env_secrets
+    triggering:
+      events:
+        - push
+        - pull_request
+    scripts:
+      - *ensure_wrapper
+      - *write_secrets
+      - *quality
+      - *unit_tests
+      - name: APK debug
+        script: ./gradlew assembleDebug
+    artifacts:
+      - app/build/outputs/**/*.apk
+      - app/build/reports/**
+      - app/build/test-results/**/*.xml
+
+  release:
+    name: Release firmado
+    <<: *instance
+    environment:
+      <<: *env_secrets
+      android_signing:
+        # Keystore subido en Codemagic > Code signing identities con esta referencia.
+        - cinemx_keystore
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*'
+          include: true
+    scripts:
+      - *ensure_wrapper
+      - *write_secrets
+      - *quality
+      - *unit_tests
+      - name: APK release firmado
+        # Codemagic inyecta el keystore y exporta CM_KEYSTORE_PATH y compañía;
+        # se traducen al keystore.properties que espera app/build.gradle.kts.
+        script: |
+          cat > "$CM_BUILD_DIR/keystore.properties" <<EOF
+          storeFile=$CM_KEYSTORE_PATH
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+          ./gradlew assembleRelease
+    artifacts:
+      - app/build/outputs/**/*.apk
+      - app/build/outputs/**/mapping.txt
+    publishing:
+      email:
+        recipients:
+          - a.mont.24.777@gmail.com
+        notify:
+          success: true
+          failure: true
