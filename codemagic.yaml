@@ -1,6 +1,7 @@
 definitions:
   instance: &instance
-    instance_type: linux_x2
+    # Sin instance_type: Codemagic asigna la máquina que permita el plan de la cuenta.
+    # Para fijarla, añadir aquí linux_x2, mac_mini_m2 o windows_x2 según disponibilidad.
     max_build_duration: 60
 
   # Variables sensibles: se definen en Codemagic > Environment variables,
