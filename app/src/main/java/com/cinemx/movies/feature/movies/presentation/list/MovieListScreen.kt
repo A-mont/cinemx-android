@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,13 +17,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,7 +28,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -45,9 +41,11 @@ import com.cinemx.movies.R
 import com.cinemx.movies.core.network.NetworkException
 import com.cinemx.movies.core.network.toNetworkError
 import com.cinemx.movies.core.network.toUiText
+import com.cinemx.movies.core.ui.components.BrandHeaderScaffold
 import com.cinemx.movies.core.ui.components.EmptyView
 import com.cinemx.movies.core.ui.components.ErrorView
 import com.cinemx.movies.core.ui.components.LoadingView
+import com.cinemx.movies.core.ui.theme.onBrandVariant
 import com.cinemx.movies.feature.movies.domain.Movie
 import kotlinx.coroutines.flow.collectLatest
 
@@ -62,8 +60,6 @@ fun MovieListScreen(
     val movies = viewModel.movies.collectAsLazyPagingItems()
     val userName by viewModel.userName.collectAsStateWithLifecycle()
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
-
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -83,44 +79,46 @@ fun MovieListScreen(
         )
     }
 
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.home_greeting, userName),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Text(
-                            text = stringResource(R.string.home_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.Logout,
-                            contentDescription = stringResource(R.string.home_logout),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+    BrandHeaderScaffold(
+        modifier = modifier,
+        header = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 8.dp, top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.home_greeting, userName),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    Text(
+                        text = stringResource(R.string.home_subtitle),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = onBrandVariant,
+                    )
+                }
+
+                IconButton(onClick = { showLogoutDialog = true }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.Logout,
+                        contentDescription = stringResource(R.string.home_logout),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
+            }
         },
-    ) { padding ->
+    ) {
         MovieListContent(
             movies = movies,
             onMovieClick = onMovieClick,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,8 +151,8 @@ private fun MovieListContent(
 
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 items(
                     count = movies.itemCount,

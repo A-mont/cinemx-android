@@ -1,8 +1,10 @@
 package com.cinemx.movies
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +34,9 @@ class MainActivity : ComponentActivity() {
             viewModel.sessionState.value is SessionState.Resolving
         }
 
-        enableEdgeToEdge()
+        // Iconos claros siempre: la cabecera de marca y el backdrop del detalle
+        // son oscuros en ambos temas, así que el juego automático no sirve aquí.
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
         super.onCreate(savedInstanceState)
 
         setContent {

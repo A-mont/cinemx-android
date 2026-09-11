@@ -1,5 +1,6 @@
 package com.cinemx.movies.feature.auth.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -27,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -51,6 +54,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cinemx.movies.R
+import com.cinemx.movies.core.ui.components.SheetCornerRadius
+import com.cinemx.movies.core.ui.theme.brandGradient
 import com.cinemx.movies.feature.auth.data.GoogleIdTokenProvider
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -86,10 +91,13 @@ fun LoginScreen(
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        // El degradado de marca ocupa el fondo; el Scaffold solo aporta el snackbar.
+        containerColor = Color.Transparent,
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(brandGradient)
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .imePadding()
@@ -97,68 +105,74 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Column(
+            Surface(
                 // En tablets el formulario no debe estirarse a todo el ancho.
                 modifier = Modifier.widthIn(max = CONTENT_MAX_WIDTH),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                shape = RoundedCornerShape(SheetCornerRadius),
+                color = MaterialTheme.colorScheme.surface,
             ) {
-                Header()
-
-                EmailField(
-                    value = state.email,
-                    errorText = state.emailError?.asString(),
-                    onValueChange = viewModel::onEmailChange,
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                PasswordField(
-                    value = state.password,
-                    errorText = state.passwordError?.asString(),
-                    isVisible = state.isPasswordVisible,
-                    onValueChange = viewModel::onPasswordChange,
-                    onToggleVisibility = viewModel::onTogglePasswordVisibility,
-                    onDone = {
-                        keyboard?.hide()
-                        viewModel.onSubmit()
-                    },
-                )
-
-                Spacer(Modifier.height(24.dp))
-
-                Button(
-                    onClick = {
-                        keyboard?.hide()
-                        viewModel.onSubmit()
-                    },
-                    enabled = state.isSubmitEnabled,
-                    modifier = Modifier.fillMaxWidth(),
+                Column(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    if (state.isLoading) {
-                        ButtonSpinner(color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text(stringResource(R.string.login_action))
-                    }
-                }
+                    Header()
 
-                OrDivider(modifier = Modifier.padding(vertical = 20.dp))
+                    EmailField(
+                        value = state.email,
+                        errorText = state.emailError?.asString(),
+                        onValueChange = viewModel::onEmailChange,
+                    )
 
-                OutlinedButton(
-                    onClick = {
-                        scope.launch {
-                            viewModel.onGoogleStarted()
-                            googleProvider.requestIdToken(context)
-                                .onSuccess { viewModel.onGoogleToken(it.idToken, it.rawNonce) }
-                                .onFailure { viewModel.onGoogleFailed(it) }
+                    Spacer(Modifier.height(8.dp))
+
+                    PasswordField(
+                        value = state.password,
+                        errorText = state.passwordError?.asString(),
+                        isVisible = state.isPasswordVisible,
+                        onValueChange = viewModel::onPasswordChange,
+                        onToggleVisibility = viewModel::onTogglePasswordVisibility,
+                        onDone = {
+                            keyboard?.hide()
+                            viewModel.onSubmit()
+                        },
+                    )
+
+                    Spacer(Modifier.height(24.dp))
+
+                    Button(
+                        onClick = {
+                            keyboard?.hide()
+                            viewModel.onSubmit()
+                        },
+                        enabled = state.isSubmitEnabled,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        if (state.isLoading) {
+                            ButtonSpinner(color = MaterialTheme.colorScheme.onPrimary)
+                        } else {
+                            Text(stringResource(R.string.login_action))
                         }
-                    },
-                    enabled = state.isSubmitEnabled,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    if (state.isGoogleLoading) {
-                        ButtonSpinner(color = MaterialTheme.colorScheme.primary)
-                    } else {
-                        Text(stringResource(R.string.login_google))
+                    }
+
+                    OrDivider(modifier = Modifier.padding(vertical = 20.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                viewModel.onGoogleStarted()
+                                googleProvider.requestIdToken(context)
+                                    .onSuccess { viewModel.onGoogleToken(it.idToken, it.rawNonce) }
+                                    .onFailure { viewModel.onGoogleFailed(it) }
+                            }
+                        },
+                        enabled = state.isSubmitEnabled,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        if (state.isGoogleLoading) {
+                            ButtonSpinner(color = MaterialTheme.colorScheme.primary)
+                        } else {
+                            Text(stringResource(R.string.login_google))
+                        }
                     }
                 }
             }
