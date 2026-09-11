@@ -16,6 +16,23 @@ Kotlin · Jetpack Compose · Material 3 · MVVM + Clean Architecture
 
 ---
 
+## Credenciales de prueba
+
+La aplicación no incluye pantalla de registro: el alta de usuarios se administra desde
+Supabase. Para evaluar la prueba puede accederse con esta cuenta, ya creada y confirmada:
+
+| | |
+|---|---|
+| **Correo** | `test@cinemx.dev` |
+| **Contraseña** | `Test1234` |
+
+El acceso con Google también está operativo en el APK de release. Su pantalla de
+consentimiento está en modo de prueba, así que solo las cuentas dadas de alta como
+usuarios de prueba completan ese flujo; el acceso con correo y contraseña no tiene esa
+restricción.
+
+---
+
 ## Funcionalidad
 
 **Acceso.** Correo y contraseña contra Supabase Auth, con validación local previa,
@@ -34,7 +51,7 @@ a "N/D" cuando TMDB no lo proporciona, en lugar de desaparecer de la interfaz.
 **Cierre de sesión.** Con confirmación previa y limpieza completa de la pila de
 navegación: el botón "atrás" no regresa a la sesión cerrada.
 
-**Transversal.** Tema claro y oscuro, colores dinámicos en Android 12+, presentación de
+**Transversal.** Tema claro y oscuro con paleta de marca propia, presentación de
 borde a borde, descripciones de contenido para lectores de pantalla y todos los textos
 externalizados en recursos.
 
@@ -71,7 +88,7 @@ com.cinemx.movies/
 ├── core/
 │   ├── di/                   NetworkModule, SupabaseModule, RepositoryModule
 │   ├── network/              TmdbInterceptor, safeApiCall, NetworkError
-│   ├── ui/theme/             Color, Type, Theme (M3, oscuro, dinámico)
+│   ├── ui/theme/             Color, Type, Theme (M3, claro y oscuro)
 │   ├── ui/components/        ErrorView, LoadingView, EmptyView, RatingBadge
 │   └── util/                 UiText, formateadores, composición de URLs
 ├── feature/auth/
@@ -105,7 +122,7 @@ de configuración no lo repiten.
 
 | Área | Elección | Motivo |
 |---|---|---|
-| UI | Compose + Material 3 | Tema dinámico, componentes adaptativos, menos superficie que XML + vistas |
+| UI | Compose + Material 3 | Sistema de color por roles, componentes adaptativos, menos superficie que XML + vistas |
 | Inyección | Hilt (KSP) | Grafo verificado en compilación; KSP evita el coste de kapt |
 | Red | Retrofit + OkHttp + kotlinx.serialization | Serialización sin reflexión y un único punto para cabeceras e idioma |
 | Concurrencia | Coroutines + Flow / StateFlow | Cancelación estructurada, ligada al ciclo de vida |
@@ -156,6 +173,17 @@ de pruebas devuelve `null`.
 (`setKeepOnScreenCondition`) hasta que se resuelve. Así el primer destino compuesto ya es
 el correcto y no aparece un parpadeo de la pantalla de acceso cuando existe sesión
 guardada. Un fallo al refrescar el token se trata como sesión expirada.
+
+### Supabase en lugar de Firebase
+
+El enunciado sugería Firebase y admitía incluso un usuario y contraseña estáticos. Se optó
+por Supabase Auth por tres motivos: evita acoplar la aplicación a los Servicios de Google
+Play para algo que es puro HTTP, mantiene el proyecto en un único proveedor si más
+adelante hiciera falta persistencia, y no obliga a versionar un `google-services.json`.
+
+La decisión no filtra al resto del código: `AuthRepository` no menciona a Supabase por
+ninguna parte, de modo que cambiar de proveedor es escribir otra implementación de esa
+interfaz y cambiar la línea correspondiente del módulo de Hilt.
 
 ### Acceso con Google
 
