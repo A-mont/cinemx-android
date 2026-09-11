@@ -1,6 +1,7 @@
 package com.cinemx.movies.feature.movies.presentation.detail
 
 import androidx.lifecycle.SavedStateHandle
+import app.cash.turbine.TurbineTestContext
 import app.cash.turbine.test
 import com.cinemx.movies.MainDispatcherRule
 import com.cinemx.movies.core.network.NetworkError
@@ -12,7 +13,9 @@ import com.cinemx.movies.navigation.MovieDetailRoute
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -33,7 +36,7 @@ class MovieDetailViewModelTest {
 
         val viewModel = createViewModel()
 
-        viewModel.uiState.test {
+        collectingUiState(viewModel) {
             assertEquals(MovieDetailUiState.Loading, awaitItem())
 
             val success = awaitItem()
@@ -51,7 +54,7 @@ class MovieDetailViewModelTest {
 
         val viewModel = createViewModel()
 
-        viewModel.uiState.test {
+        collectingUiState(viewModel) {
             assertEquals(MovieDetailUiState.Loading, awaitItem())
             assertTrue(awaitItem() is MovieDetailUiState.Error)
             cancelAndIgnoreRemainingEvents()
@@ -67,7 +70,7 @@ class MovieDetailViewModelTest {
 
         val viewModel = createViewModel()
 
-        viewModel.uiState.test {
+        collectingUiState(viewModel) {
             assertEquals(MovieDetailUiState.Loading, awaitItem())
             assertTrue(awaitItem() is MovieDetailUiState.Error)
 
@@ -78,6 +81,19 @@ class MovieDetailViewModelTest {
 
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    /**
+     * `load()` pasa a Loading y asigna el resultado sin suspender entre medias, así que un
+     * colector despachado no vería el Loading del retry: `StateFlow` conflaciona. Colectar
+     * en un dispatcher unconfined (con el scheduler del test, para no perder el tiempo
+     * virtual) reanuda el colector en cada emisión y hace visible la transición completa.
+     */
+    private suspend fun collectingUiState(
+        viewModel: MovieDetailViewModel,
+        validate: suspend TurbineTestContext<MovieDetailUiState>.() -> Unit,
+    ) = withContext(UnconfinedTestDispatcher(mainDispatcherRule.dispatcher.scheduler)) {
+        viewModel.uiState.test(validate = validate)
     }
 
     private fun createViewModel() = MovieDetailViewModel(
