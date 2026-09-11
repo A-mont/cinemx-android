@@ -75,7 +75,7 @@ por un mapper que produce modelos de dominio ya formateados.
 
 La consecuencia práctica es que la capa de presentación desconoce el proveedor de datos.
 Sustituir Supabase por otro backend de autenticación, o TMDB por otra fuente, es escribir
-otra implementación de la interfaz — no tocar ViewModels, pantallas ni pruebas.
+otra implementación de la interfaz, sin tocar ViewModels, pantallas ni pruebas.
 
 ### Estructura
 
@@ -111,8 +111,8 @@ beneficio; la estructura de paquetes ya refleja dónde caería cada corte.
 ### Estado y eventos
 
 Cada pantalla expone un `UiState` inmutable como `StateFlow`, recolectado con
-`collectAsStateWithLifecycle()`. Lo que debe ocurrir una sola vez —navegar, mostrar un
-snackbar— viaja por un `Channel` independiente, de modo que una recomposición o un cambio
+`collectAsStateWithLifecycle()`. Lo que debe ocurrir una sola vez (navegar, mostrar un
+snackbar) viaja por un `Channel` independiente, de modo que una recomposición o un cambio
 de configuración no lo repiten.
 
 ---
@@ -147,8 +147,8 @@ en la misma llamada con `append_to_response=release_dates`.
 
 La resolución recorre los países por preferencia (MX → US) y, dentro de cada uno, toma la
 primera certificación no vacía; si ninguno aporta valor devuelve `null` y la interfaz
-muestra "N/D". Los casos límite —país ausente, cadena vacía, bloque no solicitado,
-diferencias de mayúsculas— están cubiertos en `CertificationMapperTest`.
+muestra "N/D". Los casos límite (país ausente, cadena vacía, bloque no solicitado,
+diferencias de mayúsculas) están cubiertos en `CertificationMapperTest`.
 
 ### Modelo de error
 
@@ -205,8 +205,8 @@ configuración no reinicia la carga desde la primera página.
 Las rutas de TMDB son relativas; las URL se componen eligiendo el ancho por destino
 (`w342` en listado, `w500` y `w780` en detalle) para no descargar píxeles que no se van a
 mostrar. Las peticiones se hacen en `es-MX` con región `MX`; las fechas se formatean con
-`java.time` y `FormatStyle.MEDIUM`, y las sinopsis vacías —frecuentes en localizaciones
-no inglesas— caen a un texto de respaldo.
+`java.time` y `FormatStyle.MEDIUM`, y las sinopsis vacías (frecuentes en localizaciones
+no inglesas) caen a un texto de respaldo.
 
 ### Gestión de secretos
 
@@ -240,7 +240,7 @@ transportaría.
    GOOGLE_WEB_CLIENT_ID=....apps.googleusercontent.com
    ```
 
-2. Preparar el proyecto de Supabase —proveedores, usuario y cliente OAuth de Google.
+2. Preparar el proyecto de Supabase: proveedores, usuario y cliente OAuth de Google.
 
 3. Compilar:
 
@@ -285,10 +285,10 @@ build. Para hacerlos bloqueantes:
 
 `codemagic.yaml` define dos flujos:
 
-- **`debug`** — en cada push y pull request: genera el wrapper si falta, materializa los
+- **`debug`**: en cada push y pull request, genera el wrapper si falta, materializa los
   secretos desde el grupo de variables `cinemx_secrets`, ejecuta estilo y pruebas
   unitarias, y produce el APK de depuración.
-- **`release`** — al publicar una etiqueta `v*`: lo anterior más el APK firmado con R8
+- **`release`**: al publicar una etiqueta `v*`, lo anterior más el APK firmado con R8
   activo, publicando el `mapping.txt` junto al binario.
 
 El keystore se inyecta desde *Code signing identities* (`cinemx_keystore`) y el flujo lo
