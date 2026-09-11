@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
@@ -42,12 +44,15 @@ import com.cinemx.movies.core.network.NetworkException
 import com.cinemx.movies.core.network.toNetworkError
 import com.cinemx.movies.core.network.toUiText
 import com.cinemx.movies.core.ui.components.BrandHeaderScaffold
+import com.cinemx.movies.core.ui.components.BrandMark
 import com.cinemx.movies.core.ui.components.EmptyView
 import com.cinemx.movies.core.ui.components.ErrorView
 import com.cinemx.movies.core.ui.components.LoadingView
 import com.cinemx.movies.core.ui.theme.onBrandVariant
 import com.cinemx.movies.feature.movies.domain.Movie
 import kotlinx.coroutines.flow.collectLatest
+
+private val HEADER_MARK_SIZE = 44.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,6 +93,10 @@ fun MovieListScreen(
                     .padding(start = 20.dp, end = 8.dp, top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                BrandMark(size = HEADER_MARK_SIZE, elevation = 6.dp)
+
+                Spacer(Modifier.width(14.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.home_greeting, userName),
