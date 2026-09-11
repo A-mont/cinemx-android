@@ -27,8 +27,8 @@ fun RatingBadge(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(50))
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .padding(horizontal = 10.dp, vertical = 4.dp)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
             // Una sola etiqueta, en vez de "estrella" y el número por separado.
             .clearAndSetSemantics { contentDescription = "Calificación $rating de 10" },
         verticalAlignment = Alignment.CenterVertically,
@@ -38,12 +38,12 @@ fun RatingBadge(
             imageVector = Icons.Rounded.Star,
             contentDescription = null,
             modifier = Modifier.size(16.dp),
-            tint = MaterialTheme.colorScheme.primary,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
         )
         Text(
             text = rating,
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
     }
 }

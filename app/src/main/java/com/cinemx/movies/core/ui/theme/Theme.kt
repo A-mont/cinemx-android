@@ -1,55 +1,96 @@
 package com.cinemx.movies.core.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 
 private val LightColors = lightColorScheme(
-    primary = Amber40,
-    onPrimary = androidx.compose.ui.graphics.Color.White,
-    primaryContainer = AmberContainerLight,
-    secondary = Slate40,
-    secondaryContainer = SlateContainerLight,
-    error = Rose40,
+    primary = Indigo40,
+    onPrimary = Color.White,
+    primaryContainer = Indigo90,
+    onPrimaryContainer = Indigo10,
+    secondary = Indigo50,
+    onSecondary = Color.White,
+    secondaryContainer = Indigo90,
+    onSecondaryContainer = Indigo10,
+    tertiary = Navy,
+    onTertiary = Color.White,
     background = SurfaceLight,
-    surface = SurfaceLight,
     onBackground = OnSurfaceLight,
+    surface = SurfaceLight,
     onSurface = OnSurfaceLight,
+    surfaceVariant = SurfaceContainerLight,
+    onSurfaceVariant = OnSurfaceVariantLight,
+    surfaceContainerLowest = SurfaceLight,
+    surfaceContainerLow = SurfaceContainerLight,
+    surfaceContainer = SurfaceContainerLight,
+    surfaceContainerHigh = SurfaceContainerHighLight,
+    surfaceContainerHighest = SurfaceContainerHighLight,
+    outlineVariant = OutlineVariantLight,
+    error = Crimson40,
+    onError = Color.White,
+    errorContainer = CrimsonContainerLight,
+    onErrorContainer = Crimson40,
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Amber80,
-    onPrimary = androidx.compose.ui.graphics.Color.Black,
-    primaryContainer = AmberContainerDark,
-    secondary = Slate80,
-    secondaryContainer = SlateContainerDark,
-    error = Rose80,
-    background = SurfaceDark,
-    surface = SurfaceDark,
+    primary = Indigo80,
+    onPrimary = Indigo20,
+    primaryContainer = IndigoContainerDark,
+    onPrimaryContainer = Indigo90,
+    secondary = Indigo80,
+    onSecondary = Indigo20,
+    secondaryContainer = IndigoContainerDark,
+    onSecondaryContainer = Indigo90,
+    tertiary = Indigo80,
+    onTertiary = Indigo20,
+    background = BackgroundDark,
     onBackground = OnSurfaceDark,
+    surface = BackgroundDark,
     onSurface = OnSurfaceDark,
+    surfaceVariant = SurfaceContainerDark,
+    onSurfaceVariant = OnSurfaceVariantDark,
+    surfaceContainerLowest = BackgroundDark,
+    surfaceContainerLow = SurfaceContainerDark,
+    surfaceContainer = SurfaceContainerDark,
+    surfaceContainerHigh = SurfaceContainerHighDark,
+    surfaceContainerHighest = SurfaceContainerHighDark,
+    outlineVariant = OutlineVariantDark,
+    error = Crimson80,
+    onError = Color(0xFF5F0021),
+    errorContainer = CrimsonContainerDark,
+    onErrorContainer = Crimson80,
 )
+
+/**
+ * Degradado de la cabecera de marca. Vive en el tema y no en las pantallas para que
+ * el color siga teniendo una sola fuente de verdad.
+ */
+val brandGradient: Brush
+    @Composable
+    get() = Brush.verticalGradient(
+        colors = if (isSystemInDarkTheme()) {
+            listOf(IndigoContainerDark, BackgroundDark)
+        } else {
+            listOf(Indigo60, Indigo40)
+        },
+    )
+
+/** Color legible sobre [brandGradient], para textos secundarios de la cabecera. */
+val onBrandVariant: Color = Indigo80
 
 @Composable
 fun CineMxTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColors
-        else -> LightColors
-    }
+    // Sin dynamicColor a propósito: en Android 12+ sustituiría la paleta de marca
+    // por la del fondo de pantalla y la identidad de CineMx se perdería.
+    val colorScheme = if (darkTheme) DarkColors else LightColors
 
     MaterialTheme(
         colorScheme = colorScheme,

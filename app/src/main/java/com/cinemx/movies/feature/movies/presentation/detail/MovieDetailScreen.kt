@@ -1,39 +1,38 @@
 package com.cinemx.movies.feature.movies.presentation.detail
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Movie
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,11 +41,13 @@ import com.cinemx.movies.R
 import com.cinemx.movies.core.ui.components.ErrorView
 import com.cinemx.movies.core.ui.components.LoadingView
 import com.cinemx.movies.core.ui.components.RatingBadge
+import com.cinemx.movies.core.ui.components.SheetCornerRadius
 import com.cinemx.movies.feature.movies.domain.MovieDetail
 
 private const val BACKDROP_ASPECT_RATIO = 16f / 9f
+private val CARD_SHAPE = RoundedCornerShape(18.dp)
+private val Scrim = Color(0x66000000)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailScreen(
     onBack: () -> Unit,
@@ -54,47 +55,43 @@ fun MovieDetailScreen(
     viewModel: MovieDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    Text(
-                        text = (state as? MovieDetailUiState.Success)?.movie?.title.orEmpty(),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = stringResource(R.string.detail_back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
+    Box(modifier = modifier.fillMaxSize()) {
+        when (val current = state) {
+            MovieDetailUiState.Loading -> LoadingView()
+
+            is MovieDetailUiState.Error -> ErrorView(
+                message = current.message.asString(),
+                onRetry = viewModel::retry,
             )
-        },
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            when (val current = state) {
-                MovieDetailUiState.Loading -> LoadingView()
 
-                is MovieDetailUiState.Error -> ErrorView(
-                    message = current.message.asString(),
-                    onRetry = viewModel::retry,
-                )
-
-                is MovieDetailUiState.Success -> DetailContent(movie = current.movie)
-            }
+            is MovieDetailUiState.Success -> DetailContent(movie = current.movie)
         }
+
+        // Flota sobre el backdrop: ninguna barra superior compite con la imagen.
+        BackButton(
+            onBack = onBack,
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(start = 12.dp, top = 8.dp),
+        )
+    }
+}
+
+@Composable
+private fun BackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
+    IconButton(
+        onClick = onBack,
+        modifier = modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(50))
+            .background(Scrim),
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+            contentDescription = stringResource(R.string.detail_back),
+            tint = Color.White,
+        )
     }
 }
 
@@ -105,29 +102,41 @@ private fun DetailContent(movie: MovieDetail, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 32.dp),
+            .verticalScroll(rememberScrollState()),
     ) {
         Backdrop(url = movie.backdropUrl, title = movie.title)
 
-        Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+        Surface(
+            // Sube sobre la imagen, igual que la hoja de la pantalla principal.
+            modifier = Modifier.offset(y = -SheetCornerRadius),
+            color = MaterialTheme.colorScheme.background,
+            shape = RoundedCornerShape(topStart = SheetCornerRadius, topEnd = SheetCornerRadius),
         ) {
-            MetadataBlock(movie = movie, notAvailable = notAvailable)
-
-            if (movie.genres.isNotEmpty()) {
-                Section(title = stringResource(R.string.detail_genres)) {
-                    GenreChips(genres = movie.genres)
+            Column(
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 40.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(text = movie.title, style = MaterialTheme.typography.headlineMedium)
+                    RatingBadge(rating = movie.rating ?: notAvailable)
                 }
-            }
 
-            Section(title = stringResource(R.string.detail_overview)) {
-                Text(
-                    // TMDB devuelve sinopsis vacías en es-MX con cierta frecuencia.
-                    text = movie.overview.ifBlank { stringResource(R.string.detail_no_overview) },
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                MetadataRow(movie = movie, notAvailable = notAvailable)
+
+                if (movie.genres.isNotEmpty()) {
+                    Section(title = stringResource(R.string.detail_genres)) {
+                        GenreChips(genres = movie.genres)
+                    }
+                }
+
+                Section(title = stringResource(R.string.detail_overview)) {
+                    Text(
+                        // TMDB devuelve sinopsis vacías en es-MX con cierta frecuencia.
+                        text = movie.overview.ifBlank { stringResource(R.string.detail_no_overview) },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -152,50 +161,58 @@ private fun BackdropPlaceholder() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
+            .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = Icons.Rounded.Movie,
             contentDescription = null,
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
         )
     }
 }
 
+/** Duración, estreno y clasificación como tres tarjetas planas del mismo peso. */
 @Composable
-private fun MetadataBlock(movie: MovieDetail, notAvailable: String, modifier: Modifier = Modifier) {
-    Column(
+private fun MetadataRow(movie: MovieDetail, notAvailable: String, modifier: Modifier = Modifier) {
+    Row(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        RatingBadge(rating = movie.rating ?: notAvailable)
-
-        MetadataItem(
+        MetadataCard(
             label = stringResource(R.string.detail_runtime),
             value = movie.runtime ?: notAvailable,
+            modifier = Modifier.weight(1f),
         )
-        MetadataItem(
+        MetadataCard(
             label = stringResource(R.string.detail_release_date),
             value = movie.releaseDate ?: notAvailable,
+            modifier = Modifier.weight(1f),
         )
-        MetadataItem(
+        MetadataCard(
             label = stringResource(R.string.detail_certification),
             value = movie.certification ?: notAvailable,
+            modifier = Modifier.weight(1f),
         )
     }
 }
 
 @Composable
-private fun MetadataItem(label: String, value: String) {
-    Column {
+private fun MetadataCard(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(CARD_SHAPE)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .padding(horizontal = 14.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Text(text = value, style = MaterialTheme.typography.bodyLarge)
+        Text(text = value, style = MaterialTheme.typography.titleMedium)
     }
 }
 
@@ -205,10 +222,18 @@ private fun GenreChips(genres: List<String>, modifier: Modifier = Modifier) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         genres.forEach { genre ->
-            SuggestionChip(onClick = {}, label = { Text(genre) })
+            Text(
+                text = genre,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+            )
         }
     }
 }
@@ -221,9 +246,9 @@ private fun Section(
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium)
+        Text(text = title, style = MaterialTheme.typography.titleLarge)
         content()
     }
 }

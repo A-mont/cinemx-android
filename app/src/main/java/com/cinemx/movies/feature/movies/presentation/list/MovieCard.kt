@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +33,7 @@ import com.cinemx.movies.feature.movies.domain.Movie
 
 private const val POSTER_ASPECT_RATIO = 2f / 3f
 private val POSTER_WIDTH = 96.dp
+private val CARD_SHAPE = RoundedCornerShape(20.dp)
 
 @Composable
 fun MovieCard(
@@ -40,14 +41,19 @@ fun MovieCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
+    // Tarjeta plana: se separa del fondo por contraste de superficie, no por sombra.
+    Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+        shape = CARD_SHAPE,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Poster(
                 url = movie.posterUrl,
@@ -55,7 +61,7 @@ fun MovieCard(
                 modifier = Modifier
                     .width(POSTER_WIDTH)
                     .aspectRatio(POSTER_ASPECT_RATIO)
-                    .clip(RoundedCornerShape(10.dp)),
+                    .clip(RoundedCornerShape(14.dp)),
             )
 
             Column(
@@ -105,13 +111,13 @@ private fun PosterPlaceholder() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
+            .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = Icons.Rounded.Movie,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
         )
     }
 }
