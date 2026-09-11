@@ -80,6 +80,16 @@ val brandGradient: Brush
         },
     )
 
+val brandLogoGradient: Brush
+    @Composable
+    get() = Brush.linearGradient(
+        colors = if (isSystemInDarkTheme()) {
+            listOf(Navy, BackgroundDark)
+        } else {
+            listOf(Indigo20, Navy)
+        },
+    )
+
 /** Color legible sobre [brandGradient], para textos secundarios de la cabecera. */
 val onBrandVariant: Color = Indigo80
 

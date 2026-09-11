@@ -3,6 +3,7 @@
     <string name="app_name">CineMX</string>
 
     <!-- Login -->
+    <string name="login_logo">Logotipo de CineMX</string>
     <string name="login_title">Bienvenido</string>
     <string name="login_subtitle">Inicia sesión para ver las películas en cartelera</string>
     <string name="login_email">Correo electrónico</string>
