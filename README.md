@@ -41,7 +41,8 @@ intentos, falta de red) y acceso opcional con Google. La sesión persiste entre 
 **Cartelera.** Listado paginado de estrenos con scroll infinito y refresco por gesto.
 Cada tarjeta muestra póster, título, fecha de estreno y calificación. Los estados de
 carga, error, lista vacía y reintento están cubiertos tanto en la carga inicial como en
-la paginación.
+la paginación. Una fila de filtros bajo el saludo acota el listado por género, con
+"Todos" seleccionado de origen.
 
 **Ficha de la película.** Imagen de cabecera, título, duración, fecha de estreno
 localizada, clasificación por edad, calificación, géneros y sinopsis. Cada campo degrada
@@ -88,7 +89,7 @@ com.cinemx.movies/
 │   ├── di/                   NetworkModule, SupabaseModule, RepositoryModule
 │   ├── network/              TmdbInterceptor, safeApiCall, NetworkError
 │   ├── ui/theme/             Color, Type, Theme (M3, claro y oscuro)
-│   ├── ui/components/        ErrorView, LoadingView, EmptyView, RatingBadge
+│   ├── ui/components/        ErrorView, LoadingView, EmptyView, RatingBadge, BrandMark
 │   └── util/                 UiText, formateadores, composición de URLs
 ├── feature/auth/
 │   ├── data/                 SupabaseAuthRepository, GoogleIdTokenProvider
@@ -96,9 +97,9 @@ com.cinemx.movies/
 │   └── presentation/         LoginScreen, LoginViewModel, LoginUiState
 ├── feature/movies/
 │   ├── data/                 TmdbApi, DTOs, mappers, PagingSource, repositorio
-│   ├── domain/               Movie, MovieDetail, MovieRepository, UseCases
+│   ├── domain/               Movie, MovieDetail, Genre, MovieRepository, UseCases
 │   └── presentation/
-│       ├── list/             MovieListScreen, MovieCard, MovieListViewModel
+│       ├── list/             MovieListScreen, MovieCard, GenreFilterRow, MovieListViewModel
 │       └── detail/           MovieDetailScreen, MovieDetailViewModel
 └── navigation/               AppNavHost, rutas @Serializable
 ```
@@ -192,13 +193,38 @@ incrustado en el ID token, y a Supabase el valor **en claro**, que vuelve a hash
 compararlo. Enviar el mismo valor a ambos lados es el error habitual en esta integración
 y produce un `invalid nonce`.
 
+### Filtro por género
+
+`now_playing` no admite filtro de género. La opción barata era filtrar en el cliente las
+páginas ya cargadas, pero tiene una consecuencia que se nota: si el género elegido no
+aparece en la primera página, la pantalla declara "no hay resultados" aunque haya
+coincidencias en páginas posteriores, y con la lista vacía no hay scroll que dispare la
+carga de la siguiente. El usuario recibe una respuesta falsa.
+
+Por eso, al elegir un género la paginación pasa a `/discover/movie` reproduciendo la
+ventana de cartelera: estreno en cine (`with_release_type=2|3`) dentro de los últimos 45
+días y orden por popularidad. La paginación sigue siendo correcta de principio a fin, con
+`total_pages` reales y sin huecos.
+
+El coste es que ese conjunto puede diferir ligeramente del de `now_playing`: una película
+concreta puede aparecer filtrada por género y no en el listado sin filtrar. Se acepta a
+cambio de no mentir sobre la ausencia de resultados. `now_playing` devuelve su ventana
+real en el bloque `dates`, así que la aproximación podría afinarse leyéndola de ahí, a
+costa de acoplar la ruta filtrada a que la sin filtrar se haya resuelto antes.
+
+El catálogo de géneros viene de `/genre/movie/list` y el repositorio lo guarda en
+memoria, porque TMDB lo cambia una o dos veces al año. Si esa llamada falla, la fila de
+filtros no se dibuja y el listado sigue funcionando con normalidad.
+
 ### Paginación
 
 `NowPlayingPagingSource` traduce el esquema de páginas de TMDB (`page` / `total_pages`) a
 claves de Paging, devolviendo `nextKey = null` en la última página en lugar de solicitar
-una vacía. `getRefreshKey` se ancla a la posición visible para reanudar donde estaba el
-usuario. El flujo se cachea con `cachedIn(viewModelScope)`, de modo que un cambio de
-configuración no reinicia la carga desde la primera página.
+una vacía, tanto si la página viene de `now_playing` como de `discover`. `getRefreshKey`
+se ancla a la posición visible para reanudar donde estaba el usuario. El género
+seleccionado entra por `flatMapLatest`, de modo que cambiarlo descarta el `Pager`
+anterior, y el resultado se cachea con `cachedIn(viewModelScope)` para que un cambio de
+configuración no reinicie la carga desde la primera página.
 
 ### Imágenes y localización
 
