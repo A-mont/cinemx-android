@@ -26,10 +26,9 @@ Supabase. Para evaluar la prueba puede accederse con esta cuenta, ya creada y co
 | **Correo** | `test@cinemx.dev` |
 | **Contraseña** | `Test1234` |
 
-El acceso con Google también está operativo en el APK de release. Su pantalla de
-consentimiento está en modo de prueba, así que solo las cuentas dadas de alta como
-usuarios de prueba completan ese flujo; el acceso con correo y contraseña no tiene esa
-restricción.
+El acceso con Google también está operativo en el APK de release y puede probarse con
+cualquier cuenta del dispositivo: Supabase da de alta al usuario en el primer inicio de
+sesión correcto.
 
 ---
 
