@@ -8,6 +8,7 @@ import com.cinemx.movies.core.network.NetworkException
 import com.cinemx.movies.feature.movies.domain.GetMovieDetailUseCase
 import com.cinemx.movies.feature.movies.domain.MovieDetail
 import com.cinemx.movies.feature.movies.domain.MovieRepository
+import com.cinemx.movies.navigation.MovieDetailRoute
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -81,8 +82,8 @@ class MovieDetailViewModelTest {
 
     private fun createViewModel() = MovieDetailViewModel(
         getMovieDetail = useCase,
-        // `toRoute()` se apoya en las claves que Navigation guarda en el SavedStateHandle.
-        savedStateHandle = SavedStateHandle(mapOf("movieId" to MOVIE_ID)),
+        // Misma clave que Navigation usa para el argumento de la ruta de detalle.
+        savedStateHandle = SavedStateHandle(mapOf(MovieDetailRoute.MOVIE_ID_ARG to MOVIE_ID)),
     )
 
     private companion object {
