@@ -1,27 +1,17 @@
 definitions:
   instance: &instance
-    # Sin instance_type: Codemagic asigna la máquina que permita el plan de la cuenta.
-    # Para fijarla, añadir aquí linux_x2, mac_mini_m2 o windows_x2 según disponibilidad.
     max_build_duration: 60
 
-  # Variables sensibles: se definen en Codemagic > Environment variables,
-  # dentro del grupo `cinemx_secrets`, marcadas como "Secure".
-  #   TMDB_READ_TOKEN, SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_WEB_CLIENT_ID
   env_secrets: &env_secrets
     groups:
       - cinemx_secrets
     java: 17
     vars:
-      # Debe coincidir con gradle/wrapper/gradle-wrapper.properties.
       GRADLE_VERSION: 8.11.1
 
   scripts:
     - &ensure_wrapper
       name: Asegurar el Gradle wrapper
-      # El wrapper incluye un .jar binario que no conviene versionar a mano.
-      # Si el repo no lo trae, se genera aquí: primero con el Gradle de la imagen
-      # y, si no hubiera, descargando la distribución oficial. Así el build no
-      # depende de que la máquina venga con Gradle preinstalado.
       script: |
         set -e
         cd "$CM_BUILD_DIR"
@@ -57,8 +47,6 @@ definitions:
 
     - &quality
       name: Calidad estática
-      # En modo aviso (por defecto) reporta sin romper el build, para que el primer
-      # pipeline llegue a compilar. Con el build ya verde: -PqualityAdvisory=false.
       script: ./gradlew ktlintCheck detekt
 
     - &unit_tests
@@ -93,7 +81,6 @@ workflows:
     environment:
       <<: *env_secrets
       android_signing:
-        # Keystore subido en Codemagic > Code signing identities con esta referencia.
         - cinemx_keystore
     triggering:
       events:
@@ -107,8 +94,6 @@ workflows:
       - *quality
       - *unit_tests
       - name: APK release firmado
-        # Codemagic inyecta el keystore y exporta CM_KEYSTORE_PATH y compañía;
-        # se traducen al keystore.properties que espera app/build.gradle.kts.
         script: |
           cat > "$CM_BUILD_DIR/keystore.properties" <<EOF
           storeFile=$CM_KEYSTORE_PATH
@@ -119,8 +104,6 @@ workflows:
           ./gradlew assembleRelease
 
       - name: Huella SHA-1 de la firma
-        # Esta huella debe registrarse como cliente OAuth de Android en Google Cloud,
-        # o Credential Manager no entregara el ID token al iniciar sesion con Google.
         script: |
           keytool -list -v -keystore "$CM_KEYSTORE_PATH" -storepass "$CM_KEYSTORE_PASSWORD" | grep -E "Alias name|SHA1:|SHA-1:"
     artifacts:
@@ -134,10 +117,6 @@ workflows:
           success: true
           failure: true
 
-  # Workflow temporal: se lanza a mano una sola vez para crear el keystore de
-  # release sin necesidad de un JDK local. El .keystore sale como artefacto y la
-  # contrasena se imprime en el log; ambos se cargan luego en Codemagic, en
-  # Code signing identities, con la referencia cinemx_keystore. Borrar tras usarlo.
   keystore:
     name: Generar keystore de release (temporal)
     <<: *instance
