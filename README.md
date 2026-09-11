@@ -23,8 +23,8 @@ Supabase. Para evaluar la prueba puede accederse con esta cuenta, ya creada y co
 
 | | |
 |---|---|
-| **Correo** | `CORREO_DE_PRUEBA` |
-| **Contraseña** | `PASSWORD_DE_PRUEBA` |
+| **Correo** | `test@cinemx.dev` |
+| **Contraseña** | `Test1234` |
 
 El acceso con Google también está operativo en el APK de release. Su pantalla de
 consentimiento está en modo de prueba, así que solo las cuentas dadas de alta como
@@ -51,7 +51,7 @@ a "N/D" cuando TMDB no lo proporciona, en lugar de desaparecer de la interfaz.
 **Cierre de sesión.** Con confirmación previa y limpieza completa de la pila de
 navegación: el botón "atrás" no regresa a la sesión cerrada.
 
-**Transversal.** Tema claro y oscuro, colores dinámicos en Android 12+, presentación de
+**Transversal.** Tema claro y oscuro con paleta de marca propia, presentación de
 borde a borde, descripciones de contenido para lectores de pantalla y todos los textos
 externalizados en recursos.
 
@@ -88,7 +88,7 @@ com.cinemx.movies/
 ├── core/
 │   ├── di/                   NetworkModule, SupabaseModule, RepositoryModule
 │   ├── network/              TmdbInterceptor, safeApiCall, NetworkError
-│   ├── ui/theme/             Color, Type, Theme (M3, oscuro, dinámico)
+│   ├── ui/theme/             Color, Type, Theme (M3, claro y oscuro)
 │   ├── ui/components/        ErrorView, LoadingView, EmptyView, RatingBadge
 │   └── util/                 UiText, formateadores, composición de URLs
 ├── feature/auth/
@@ -122,7 +122,7 @@ de configuración no lo repiten.
 
 | Área | Elección | Motivo |
 |---|---|---|
-| UI | Compose + Material 3 | Tema dinámico, componentes adaptativos, menos superficie que XML + vistas |
+| UI | Compose + Material 3 | Sistema de color por roles, componentes adaptativos, menos superficie que XML + vistas |
 | Inyección | Hilt (KSP) | Grafo verificado en compilación; KSP evita el coste de kapt |
 | Red | Retrofit + OkHttp + kotlinx.serialization | Serialización sin reflexión y un único punto para cabeceras e idioma |
 | Concurrencia | Coroutines + Flow / StateFlow | Cancelación estructurada, ligada al ciclo de vida |
