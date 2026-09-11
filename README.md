@@ -16,6 +16,23 @@ Kotlin · Jetpack Compose · Material 3 · MVVM + Clean Architecture
 
 ---
 
+## Credenciales de prueba
+
+La aplicación no incluye pantalla de registro: el alta de usuarios se administra desde
+Supabase. Para evaluar la prueba puede accederse con esta cuenta, ya creada y confirmada:
+
+| | |
+|---|---|
+| **Correo** | `CORREO_DE_PRUEBA` |
+| **Contraseña** | `PASSWORD_DE_PRUEBA` |
+
+El acceso con Google también está operativo en el APK de release. Su pantalla de
+consentimiento está en modo de prueba, así que solo las cuentas dadas de alta como
+usuarios de prueba completan ese flujo; el acceso con correo y contraseña no tiene esa
+restricción.
+
+---
+
 ## Funcionalidad
 
 **Acceso.** Correo y contraseña contra Supabase Auth, con validación local previa,
@@ -156,6 +173,17 @@ de pruebas devuelve `null`.
 (`setKeepOnScreenCondition`) hasta que se resuelve. Así el primer destino compuesto ya es
 el correcto y no aparece un parpadeo de la pantalla de acceso cuando existe sesión
 guardada. Un fallo al refrescar el token se trata como sesión expirada.
+
+### Supabase en lugar de Firebase
+
+El enunciado sugería Firebase y admitía incluso un usuario y contraseña estáticos. Se optó
+por Supabase Auth por tres motivos: evita acoplar la aplicación a los Servicios de Google
+Play para algo que es puro HTTP, mantiene el proyecto en un único proveedor si más
+adelante hiciera falta persistencia, y no obliga a versionar un `google-services.json`.
+
+La decisión no filtra al resto del código: `AuthRepository` no menciona a Supabase por
+ninguna parte, de modo que cambiar de proveedor es escribir otra implementación de esa
+interfaz y cambiar la línea correspondiente del módulo de Hilt.
 
 ### Acceso con Google
 
