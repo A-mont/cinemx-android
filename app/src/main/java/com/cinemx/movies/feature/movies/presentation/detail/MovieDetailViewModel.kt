@@ -3,7 +3,6 @@ package com.cinemx.movies.feature.movies.presentation.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import com.cinemx.movies.core.network.NetworkException
 import com.cinemx.movies.core.network.toNetworkError
 import com.cinemx.movies.core.network.toUiText
@@ -30,7 +29,9 @@ class MovieDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val movieId: Int = savedStateHandle.toRoute<MovieDetailRoute>().movieId
+    private val movieId: Int = checkNotNull(savedStateHandle.get<Int>(MovieDetailRoute.MOVIE_ID_ARG)) {
+        "Falta el argumento ${MovieDetailRoute.MOVIE_ID_ARG} en la ruta de detalle."
+    }
 
     private val _uiState = MutableStateFlow<MovieDetailUiState>(MovieDetailUiState.Loading)
     val uiState: StateFlow<MovieDetailUiState> = _uiState.asStateFlow()
