@@ -7,7 +7,14 @@ import javax.inject.Inject
 class GetNowPlayingMoviesUseCase @Inject constructor(
     private val repository: MovieRepository,
 ) {
-    operator fun invoke(): Flow<PagingData<Movie>> = repository.getNowPlaying()
+    operator fun invoke(genreId: Int? = null): Flow<PagingData<Movie>> =
+        repository.getNowPlaying(genreId)
+}
+
+class GetMovieGenresUseCase @Inject constructor(
+    private val repository: MovieRepository,
+) {
+    suspend operator fun invoke(): Result<List<Genre>> = repository.getGenres()
 }
 
 class GetMovieDetailUseCase @Inject constructor(

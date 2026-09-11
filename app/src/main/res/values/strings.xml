@@ -31,8 +31,11 @@
     <string name="home_logout_message">¿Seguro que quieres cerrar sesión?</string>
     <string name="home_logout_confirm">Cerrar sesión</string>
     <string name="home_logout_cancel">Cancelar</string>
+    <string name="home_genre_all">Todos</string>
     <string name="home_empty_title">No hay películas en cartelera</string>
     <string name="home_empty_message">Vuelve a intentarlo más tarde</string>
+    <string name="home_empty_genre_title">Nada en cartelera de este género</string>
+    <string name="home_empty_genre_message">Prueba con otro género o vuelve a \"Todos\"</string>
 
     <!-- Detalle -->
     <string name="detail_back">Volver</string>

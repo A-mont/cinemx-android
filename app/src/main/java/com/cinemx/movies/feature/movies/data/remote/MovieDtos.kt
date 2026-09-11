@@ -39,6 +39,11 @@ data class MovieDetailDto(
 )
 
 @Serializable
+data class GenresResponseDto(
+    @SerialName("genres") val genres: List<GenreDto> = emptyList(),
+)
+
+@Serializable
 data class GenreDto(
     @SerialName("id") val id: Int,
     @SerialName("name") val name: String = "",

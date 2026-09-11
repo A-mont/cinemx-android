@@ -93,6 +93,15 @@ val brandLogoGradient: Brush
 /** Color legible sobre [brandGradient], para textos secundarios de la cabecera. */
 val onBrandVariant: Color = Indigo80
 
+/**
+ * Relleno de un filtro activo sobre [brandGradient]. No depende del tema: la cabecera
+ * lleva el degradado de marca en claro y en oscuro, así que el contraste es el mismo.
+ */
+val brandChipGradient: Brush = Brush.verticalGradient(listOf(Color.White, Indigo90))
+
+/** Texto legible dentro de [brandChipGradient]. */
+val onBrandChip: Color = Indigo10
+
 @Composable
 fun CineMxTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

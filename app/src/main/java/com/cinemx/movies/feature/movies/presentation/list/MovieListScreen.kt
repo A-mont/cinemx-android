@@ -64,6 +64,8 @@ fun MovieListScreen(
 ) {
     val movies = viewModel.movies.collectAsLazyPagingItems()
     val userName by viewModel.userName.collectAsStateWithLifecycle()
+    val genres by viewModel.genres.collectAsStateWithLifecycle()
+    val selectedGenreId by viewModel.selectedGenreId.collectAsStateWithLifecycle()
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -118,10 +120,18 @@ fun MovieListScreen(
                     )
                 }
             }
+
+            GenreFilterRow(
+                genres = genres,
+                selectedGenreId = selectedGenreId,
+                onGenreSelected = viewModel::onGenreSelected,
+                modifier = Modifier.padding(top = 18.dp),
+            )
         },
     ) {
         MovieListContent(
             movies = movies,
+            isFiltered = selectedGenreId != null,
             onMovieClick = onMovieClick,
             modifier = Modifier.fillMaxSize(),
         )
@@ -133,6 +143,7 @@ fun MovieListScreen(
 @Composable
 private fun MovieListContent(
     movies: LazyPagingItems<Movie>,
+    isFiltered: Boolean,
     onMovieClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -154,8 +165,16 @@ private fun MovieListContent(
             )
 
             refreshState is LoadState.NotLoading && movies.itemCount == 0 -> EmptyView(
-                title = stringResource(R.string.home_empty_title),
-                message = stringResource(R.string.home_empty_message),
+                title = stringResource(
+                    if (isFiltered) R.string.home_empty_genre_title else R.string.home_empty_title,
+                ),
+                message = stringResource(
+                    if (isFiltered) {
+                        R.string.home_empty_genre_message
+                    } else {
+                        R.string.home_empty_message
+                    },
+                ),
             )
 
             else -> LazyColumn(
