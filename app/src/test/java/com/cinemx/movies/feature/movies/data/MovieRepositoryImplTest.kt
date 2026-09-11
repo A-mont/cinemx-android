@@ -105,8 +105,48 @@ class MovieRepositoryImplTest {
         assertEquals(NetworkError.Unauthorized, (error as NetworkException).error)
     }
 
+    @Test
+    fun `mapea el catalogo de generos descartando los vacios`() = runTest {
+        server.enqueue(MockResponse().setResponseCode(200).setBody(GENRES_JSON))
+
+        val genres = repository.getGenres().getOrThrow()
+
+        assertEquals(listOf("Acción", "Terror"), genres.map { it.name })
+        assertEquals(listOf(28, 27), genres.map { it.id })
+    }
+
+    @Test
+    fun `no vuelve a pedir el catalogo de generos una vez resuelto`() = runTest {
+        server.enqueue(MockResponse().setResponseCode(200).setBody(GENRES_JSON))
+
+        repository.getGenres().getOrThrow()
+        repository.getGenres().getOrThrow()
+
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun `un fallo del catalogo no se cachea`() = runTest {
+        server.enqueue(MockResponse().setResponseCode(500).setBody("{}"))
+        server.enqueue(MockResponse().setResponseCode(200).setBody(GENRES_JSON))
+
+        assertTrue(repository.getGenres().isFailure)
+
+        assertEquals(2, repository.getGenres().getOrThrow().size)
+    }
+
     private fun readJson(name: String): String =
         checkNotNull(javaClass.classLoader?.getResourceAsStream(name)) { "Falta $name en resources" }
             .bufferedReader()
             .use { it.readText() }
+
+    private companion object {
+        val GENRES_JSON = """
+            {"genres":[
+              {"id":28,"name":"Acción"},
+              {"id":27,"name":"Terror"},
+              {"id":99,"name":""}
+            ]}
+        """.trimIndent()
+    }
 }

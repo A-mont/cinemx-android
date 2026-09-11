@@ -41,7 +41,8 @@ intentos, falta de red) y acceso opcional con Google. La sesión persiste entre 
 **Cartelera.** Listado paginado de estrenos con scroll infinito y refresco por gesto.
 Cada tarjeta muestra póster, título, fecha de estreno y calificación. Los estados de
 carga, error, lista vacía y reintento están cubiertos tanto en la carga inicial como en
-la paginación.
+la paginación. Una fila de filtros bajo el saludo acota el listado por género, con
+"Todos" seleccionado de origen.
 
 **Ficha de la película.** Imagen de cabecera, título, duración, fecha de estreno
 localizada, clasificación por edad, calificación, géneros y sinopsis. Cada campo degrada
@@ -75,7 +76,7 @@ por un mapper que produce modelos de dominio ya formateados.
 
 La consecuencia práctica es que la capa de presentación desconoce el proveedor de datos.
 Sustituir Supabase por otro backend de autenticación, o TMDB por otra fuente, es escribir
-otra implementación de la interfaz — no tocar ViewModels, pantallas ni pruebas.
+otra implementación de la interfaz, sin tocar ViewModels, pantallas ni pruebas.
 
 ### Estructura
 
@@ -88,7 +89,7 @@ com.cinemx.movies/
 │   ├── di/                   NetworkModule, SupabaseModule, RepositoryModule
 │   ├── network/              TmdbInterceptor, safeApiCall, NetworkError
 │   ├── ui/theme/             Color, Type, Theme (M3, claro y oscuro)
-│   ├── ui/components/        ErrorView, LoadingView, EmptyView, RatingBadge
+│   ├── ui/components/        ErrorView, LoadingView, EmptyView, RatingBadge, BrandMark
 │   └── util/                 UiText, formateadores, composición de URLs
 ├── feature/auth/
 │   ├── data/                 SupabaseAuthRepository, GoogleIdTokenProvider
@@ -96,9 +97,9 @@ com.cinemx.movies/
 │   └── presentation/         LoginScreen, LoginViewModel, LoginUiState
 ├── feature/movies/
 │   ├── data/                 TmdbApi, DTOs, mappers, PagingSource, repositorio
-│   ├── domain/               Movie, MovieDetail, MovieRepository, UseCases
+│   ├── domain/               Movie, MovieDetail, Genre, MovieRepository, UseCases
 │   └── presentation/
-│       ├── list/             MovieListScreen, MovieCard, MovieListViewModel
+│       ├── list/             MovieListScreen, MovieCard, GenreFilterRow, MovieListViewModel
 │       └── detail/           MovieDetailScreen, MovieDetailViewModel
 └── navigation/               AppNavHost, rutas @Serializable
 ```
@@ -111,8 +112,8 @@ beneficio; la estructura de paquetes ya refleja dónde caería cada corte.
 ### Estado y eventos
 
 Cada pantalla expone un `UiState` inmutable como `StateFlow`, recolectado con
-`collectAsStateWithLifecycle()`. Lo que debe ocurrir una sola vez —navegar, mostrar un
-snackbar— viaja por un `Channel` independiente, de modo que una recomposición o un cambio
+`collectAsStateWithLifecycle()`. Lo que debe ocurrir una sola vez (navegar, mostrar un
+snackbar) viaja por un `Channel` independiente, de modo que una recomposición o un cambio
 de configuración no lo repiten.
 
 ---
@@ -147,8 +148,8 @@ en la misma llamada con `append_to_response=release_dates`.
 
 La resolución recorre los países por preferencia (MX → US) y, dentro de cada uno, toma la
 primera certificación no vacía; si ninguno aporta valor devuelve `null` y la interfaz
-muestra "N/D". Los casos límite —país ausente, cadena vacía, bloque no solicitado,
-diferencias de mayúsculas— están cubiertos en `CertificationMapperTest`.
+muestra "N/D". Los casos límite (país ausente, cadena vacía, bloque no solicitado,
+diferencias de mayúsculas) están cubiertos en `CertificationMapperTest`.
 
 ### Modelo de error
 
@@ -192,21 +193,34 @@ incrustado en el ID token, y a Supabase el valor **en claro**, que vuelve a hash
 compararlo. Enviar el mismo valor a ambos lados es el error habitual en esta integración
 y produce un `invalid nonce`.
 
+### Filtro por género
+
+`now_playing` no admite filtro de género, así que al elegir uno la paginación pasa a
+`/discover/movie` con la ventana de cartelera: estreno en cine
+(`with_release_type=2|3`) dentro de los últimos 45 días y orden por popularidad.
+Filtrar en el cliente habría dejado sin resultados a los géneros ausentes de la
+primera página.
+
+El catálogo viene de `/genre/movie/list` y el repositorio lo guarda en memoria. Si esa
+llamada falla, la fila de filtros no se dibuja.
+
 ### Paginación
 
 `NowPlayingPagingSource` traduce el esquema de páginas de TMDB (`page` / `total_pages`) a
 claves de Paging, devolviendo `nextKey = null` en la última página en lugar de solicitar
-una vacía. `getRefreshKey` se ancla a la posición visible para reanudar donde estaba el
-usuario. El flujo se cachea con `cachedIn(viewModelScope)`, de modo que un cambio de
-configuración no reinicia la carga desde la primera página.
+una vacía, tanto si la página viene de `now_playing` como de `discover`. `getRefreshKey`
+se ancla a la posición visible para reanudar donde estaba el usuario. El género
+seleccionado entra por `flatMapLatest`, de modo que cambiarlo descarta el `Pager`
+anterior, y el resultado se cachea con `cachedIn(viewModelScope)` para que un cambio de
+configuración no reinicie la carga desde la primera página.
 
 ### Imágenes y localización
 
 Las rutas de TMDB son relativas; las URL se componen eligiendo el ancho por destino
 (`w342` en listado, `w500` y `w780` en detalle) para no descargar píxeles que no se van a
 mostrar. Las peticiones se hacen en `es-MX` con región `MX`; las fechas se formatean con
-`java.time` y `FormatStyle.MEDIUM`, y las sinopsis vacías —frecuentes en localizaciones
-no inglesas— caen a un texto de respaldo.
+`java.time` y `FormatStyle.MEDIUM`, y las sinopsis vacías (frecuentes en localizaciones
+no inglesas) caen a un texto de respaldo.
 
 ### Gestión de secretos
 
@@ -240,7 +254,7 @@ transportaría.
    GOOGLE_WEB_CLIENT_ID=....apps.googleusercontent.com
    ```
 
-2. Preparar el proyecto de Supabase —proveedores, usuario y cliente OAuth de Google.
+2. Preparar el proyecto de Supabase: proveedores, usuario y cliente OAuth de Google.
 
 3. Compilar:
 
@@ -285,10 +299,10 @@ build. Para hacerlos bloqueantes:
 
 `codemagic.yaml` define dos flujos:
 
-- **`debug`** — en cada push y pull request: genera el wrapper si falta, materializa los
+- **`debug`**: en cada push y pull request, genera el wrapper si falta, materializa los
   secretos desde el grupo de variables `cinemx_secrets`, ejecuta estilo y pruebas
   unitarias, y produce el APK de depuración.
-- **`release`** — al publicar una etiqueta `v*`: lo anterior más el APK firmado con R8
+- **`release`**: al publicar una etiqueta `v*`, lo anterior más el APK firmado con R8
   activo, publicando el `mapping.txt` junto al binario.
 
 El keystore se inyecta desde *Code signing identities* (`cinemx_keystore`) y el flujo lo

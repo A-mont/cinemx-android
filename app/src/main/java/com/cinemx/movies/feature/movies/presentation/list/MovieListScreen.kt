@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
@@ -30,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,12 +45,15 @@ import com.cinemx.movies.core.network.NetworkException
 import com.cinemx.movies.core.network.toNetworkError
 import com.cinemx.movies.core.network.toUiText
 import com.cinemx.movies.core.ui.components.BrandHeaderScaffold
+import com.cinemx.movies.core.ui.components.BrandMark
 import com.cinemx.movies.core.ui.components.EmptyView
 import com.cinemx.movies.core.ui.components.ErrorView
 import com.cinemx.movies.core.ui.components.LoadingView
 import com.cinemx.movies.core.ui.theme.onBrandVariant
 import com.cinemx.movies.feature.movies.domain.Movie
 import kotlinx.coroutines.flow.collectLatest
+
+private val HEADER_MARK_SIZE = 44.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +65,8 @@ fun MovieListScreen(
 ) {
     val movies = viewModel.movies.collectAsLazyPagingItems()
     val userName by viewModel.userName.collectAsStateWithLifecycle()
+    val genres by viewModel.genres.collectAsStateWithLifecycle()
+    val selectedGenreId by viewModel.selectedGenreId.collectAsStateWithLifecycle()
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -88,16 +96,26 @@ fun MovieListScreen(
                     .padding(start = 20.dp, end = 8.dp, top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                BrandMark(size = HEADER_MARK_SIZE, elevation = 6.dp)
+
+                Spacer(Modifier.width(14.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.home_greeting, userName),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onPrimary,
+                        // `greetingName` puede ser el nombre completo del proveedor:
+                        // con el logotipo al lado, uno largo desbordaría la cabecera.
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = stringResource(R.string.home_subtitle),
                         style = MaterialTheme.typography.bodyLarge,
                         color = onBrandVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
 
@@ -109,10 +127,18 @@ fun MovieListScreen(
                     )
                 }
             }
+
+            GenreFilterRow(
+                genres = genres,
+                selectedGenreId = selectedGenreId,
+                onGenreSelected = viewModel::onGenreSelected,
+                modifier = Modifier.padding(top = 18.dp),
+            )
         },
     ) {
         MovieListContent(
             movies = movies,
+            isFiltered = selectedGenreId != null,
             onMovieClick = onMovieClick,
             modifier = Modifier.fillMaxSize(),
         )
@@ -124,6 +150,7 @@ fun MovieListScreen(
 @Composable
 private fun MovieListContent(
     movies: LazyPagingItems<Movie>,
+    isFiltered: Boolean,
     onMovieClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -145,8 +172,16 @@ private fun MovieListContent(
             )
 
             refreshState is LoadState.NotLoading && movies.itemCount == 0 -> EmptyView(
-                title = stringResource(R.string.home_empty_title),
-                message = stringResource(R.string.home_empty_message),
+                title = stringResource(
+                    if (isFiltered) R.string.home_empty_genre_title else R.string.home_empty_title,
+                ),
+                message = stringResource(
+                    if (isFiltered) {
+                        R.string.home_empty_genre_message
+                    } else {
+                        R.string.home_empty_message
+                    },
+                ),
             )
 
             else -> LazyColumn(

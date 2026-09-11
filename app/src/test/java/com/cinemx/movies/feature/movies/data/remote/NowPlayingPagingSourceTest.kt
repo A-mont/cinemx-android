@@ -6,6 +6,7 @@ import androidx.paging.testing.TestPager
 import com.cinemx.movies.core.network.NetworkError
 import com.cinemx.movies.core.network.NetworkException
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -13,6 +14,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 class NowPlayingPagingSourceTest {
 
@@ -66,6 +70,39 @@ class NowPlayingPagingSourceTest {
         val error = result.throwable
         assertTrue(error is NetworkException)
         assertEquals(NetworkError.NoConnection, (error as NetworkException).error)
+    }
+
+    @Test
+    fun `con genero pide discover con la ventana de cartelera`() = runTest {
+        val clock = Clock.fixed(Instant.parse("2026-09-11T10:00:00Z"), ZoneOffset.UTC)
+        coEvery {
+            api.discoverByGenre(
+                page = 1,
+                genreId = 28,
+                releasedFrom = any(),
+                releasedTo = any(),
+                region = any(),
+                sortBy = any(),
+                releaseType = any(),
+            )
+        } returns page(1, totalPages = 1)
+
+        val source = NowPlayingPagingSource(api, genreId = 28, clock = clock)
+        val result = TestPager(config, source).refresh() as PagingSource.LoadResult.Page
+
+        assertEquals(2, result.data.size)
+        coVerify {
+            api.discoverByGenre(
+                page = 1,
+                genreId = 28,
+                releasedFrom = "2026-07-28",
+                releasedTo = "2026-09-11",
+                region = any(),
+                sortBy = any(),
+                releaseType = any(),
+            )
+        }
+        coVerify(exactly = 0) { api.getNowPlaying(any(), any()) }
     }
 
     private fun page(page: Int, totalPages: Int): PagedResponseDto<MovieDto> {
