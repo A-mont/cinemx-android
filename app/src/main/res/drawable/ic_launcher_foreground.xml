@@ -3,20 +3,19 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Claqueta de cine simplificada -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M30,44h48a4,4 0 0 1 4,4v22a4,4 0 0 1 -4,4h-48a4,4 0 0 1 -4,-4v-22a4,4 0 0 1 4,-4z" />
+        android:pathData="M34,32h40a4,4 0 0 1 4,4v4a4,4 0 0 1 -4,4h-40a4,4 0 0 1 -4,-4v-4a4,4 0 0 1 4,-4z" />
     <path
-        android:fillColor="#FFC107"
-        android:pathData="M27,34l50,-6l2,10l-50,6z" />
+        android:fillColor="#5462FF"
+        android:pathData="M42,32h4l-4,12h-4z" />
     <path
-        android:fillColor="#101418"
-        android:pathData="M36,30.4l4,9.2l-5,0.6l-4,-9.2z" />
+        android:fillColor="#5462FF"
+        android:pathData="M56,32h4l-4,12h-4z" />
     <path
-        android:fillColor="#101418"
-        android:pathData="M50,28.7l4,9.2l-5,0.6l-4,-9.2z" />
+        android:fillColor="#5462FF"
+        android:pathData="M70,32h4l-4,12h-4z" />
     <path
-        android:fillColor="#101418"
-        android:pathData="M64,27l4,9.2l-5,0.6l-4,-9.2z" />
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,47h36a6,6 0 0 1 6,6v17a6,6 0 0 1 -6,6h-36a6,6 0 0 1 -6,-6v-17a6,6 0 0 1 6,-6z" />
 </vector>
