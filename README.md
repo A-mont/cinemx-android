@@ -195,26 +195,14 @@ y produce un `invalid nonce`.
 
 ### Filtro por género
 
-`now_playing` no admite filtro de género. La opción barata era filtrar en el cliente las
-páginas ya cargadas, pero tiene una consecuencia que se nota: si el género elegido no
-aparece en la primera página, la pantalla declara "no hay resultados" aunque haya
-coincidencias en páginas posteriores, y con la lista vacía no hay scroll que dispare la
-carga de la siguiente. El usuario recibe una respuesta falsa.
+`now_playing` no admite filtro de género, así que al elegir uno la paginación pasa a
+`/discover/movie` con la ventana de cartelera: estreno en cine
+(`with_release_type=2|3`) dentro de los últimos 45 días y orden por popularidad.
+Filtrar en el cliente habría dejado sin resultados a los géneros ausentes de la
+primera página.
 
-Por eso, al elegir un género la paginación pasa a `/discover/movie` reproduciendo la
-ventana de cartelera: estreno en cine (`with_release_type=2|3`) dentro de los últimos 45
-días y orden por popularidad. La paginación sigue siendo correcta de principio a fin, con
-`total_pages` reales y sin huecos.
-
-El coste es que ese conjunto puede diferir ligeramente del de `now_playing`: una película
-concreta puede aparecer filtrada por género y no en el listado sin filtrar. Se acepta a
-cambio de no mentir sobre la ausencia de resultados. `now_playing` devuelve su ventana
-real en el bloque `dates`, así que la aproximación podría afinarse leyéndola de ahí, a
-costa de acoplar la ruta filtrada a que la sin filtrar se haya resuelto antes.
-
-El catálogo de géneros viene de `/genre/movie/list` y el repositorio lo guarda en
-memoria, porque TMDB lo cambia una o dos veces al año. Si esa llamada falla, la fila de
-filtros no se dibuja y el listado sigue funcionando con normalidad.
+El catálogo viene de `/genre/movie/list` y el repositorio lo guarda en memoria. Si esa
+llamada falla, la fila de filtros no se dibuja.
 
 ### Paginación
 
