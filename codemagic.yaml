@@ -133,3 +133,33 @@ workflows:
         notify:
           success: true
           failure: true
+
+  # Workflow temporal: se lanza a mano una sola vez para crear el keystore de
+  # release sin necesidad de un JDK local. El .keystore sale como artefacto y la
+  # contrasena se imprime en el log; ambos se cargan luego en Codemagic, en
+  # Code signing identities, con la referencia cinemx_keystore. Borrar tras usarlo.
+  keystore:
+    name: Generar keystore de release (temporal)
+    <<: *instance
+    scripts:
+      - name: Crear keystore e imprimir huella
+        script: |
+          set -e
+          cd "$CM_BUILD_DIR"
+          PASS=$(openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | cut -c1-24)
+
+          keytool -genkeypair -v \
+            -keystore cinemx-release.keystore \
+            -alias cinemx \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$PASS" -keypass "$PASS" \
+            -dname "CN=CineMX, OU=Mobile, O=CineMX, L=CDMX, ST=CDMX, C=MX"
+
+          echo "=================================================="
+          echo "  KEYSTORE PASSWORD : $PASS"
+          echo "  KEY PASSWORD      : $PASS"
+          echo "  KEY ALIAS         : cinemx"
+          echo "=================================================="
+          keytool -list -v -keystore cinemx-release.keystore -storepass "$PASS" | grep -E "SHA1:|SHA-1:"
+    artifacts:
+      - cinemx-release.keystore
